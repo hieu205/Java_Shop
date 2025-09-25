@@ -1,89 +1,72 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
-@Table(name = "User")
-
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = { "password" })
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // dùng AUTO_INCREMENT
     private Long id;
 
+    @NotBlank
+    @Size(min = 3, max = 50)
+    @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
+
+    @NotBlank
+    @Email
+    @Size(max = 100)
+    @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
+
+    @NotBlank
+    @Size(min = 6, max = 255)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
-    private String fullname;
+
+    @NotBlank
+    @Size(max = 100)
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String fullName;
+
+    @Size(max = 20)
+    @Column(name = "phone", length = 20)
     private String phone;
+
+    @Column(name = "address", columnDefinition = "TEXT")
     private String address;
-    private Long roleId;
 
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "is_active")
+    @Builder.Default
+    private Boolean isActive = true;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
+    // Custom constructor cho các field chính
+    public User(String username, String email, String password, String fullName, Role role) {
         this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
+        this.fullName = fullName;
+        this.role = role;
+        this.isActive = true;
     }
-
-    public String getFullname() {
-        return fullname;
-    }
-
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
-    }
-
 }

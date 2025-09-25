@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.Category;
+import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.ProductRepository;
 
 @Service
@@ -14,63 +16,114 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // create product
-    public Product register(Product product) {
-        return productRepository.save(product);
-    }
+    @Autowired
+    private CategoryRepository categoryRepository;
 
-    // get product by Id
-    public Product getProductById(Long id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product không tồn tại với id: " + id));
-    }
-
-    // get all products
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findByIsActiveTrue();
     }
 
-    // update product by Id
-    public Product updateProductById(Long id, Product newProduct) {
-        Product product = getProductById(id);
+    public Product getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id " + id));
 
-        if (newProduct.getName() != null && !newProduct.getName().isEmpty()) {
-            product.setName(newProduct.getName());
+        if (product.getIsActive() == false) {
+            throw new RuntimeException("san pham chua Active");
         }
 
-        if (newProduct.getDescription() != null) {
-            product.setDescription(newProduct.getDescription());
+        return product;
+    }
+
+    public List<Product> getProductByCategory(Long categoryId) {
+
+        if (categoryId == null || categoryId <= 0) {
+            throw new IllegalArgumentException("Category ID không hợp lệ");
         }
 
-        if (newProduct.getPrice() != null && newProduct.getPrice() >= 0) {
-            product.setPrice(newProduct.getPrice());
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+
+        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+    }
+
+    public List<Product> searchProducts(String keyword) {
+        return productRepository.searchActiveProductsNoPage(keyword);
+    }
+
+    public Product createProduct(Product product) {
+        Category category = categoryRepository.findById(product.getCategory().getId())
+                .orElseThrow(() -> new RuntimeException("Category not founf with id " + product.getCategory().getId()));
+        if (category.getIsActive() == false) {
+            throw new RuntimeException("category chua Active");
+        }
+        // name khong duoc de trong
+        if (product.getName() == null || product.getName().isBlank()) {
+            throw new RuntimeException("Tên sản phẩm không được để trống");
         }
 
-        if (newProduct.getQuantity() != null && newProduct.getQuantity() >= 0) {
-            product.setQuantity(newProduct.getQuantity());
+        // gia > 0
+        if (product.getPrice() == null || product.getPrice() <= 0) {
+            throw new RuntimeException("Giá sản phẩm phải > 0");
         }
 
-        if (newProduct.getLowStockThreshold() != null && newProduct.getLowStockThreshold() >= 0) {
-            product.setLowStockThreshold(newProduct.getLowStockThreshold());
+        // so luong phai > 0
+        if (product.getQuantity() == null || product.getQuantity() < 0) {
+            throw new RuntimeException("Số lượng sản phẩm phải >= 0");
         }
 
-        if (newProduct.getIsActive() != null) {
-            product.setIsActive(newProduct.getIsActive());
-        }
-
-        if (newProduct.getImageUrl() != null) {
-            product.setImageUrl(newProduct.getImageUrl());
-        }
+        product.setCategory(category);
 
         return productRepository.save(product);
     }
 
-    // delete product by Id
-    public void deleteProductById(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy Product với id: " + id);
+    public Product updatedProduct(Long id, Product product) {
+
+        Product currenProduct = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("ProductId not found with id " + id));
+
+        if (product.getIsActive() == null) {
+            throw new RuntimeException("san pham chua Active");
         }
-        productRepository.deleteById(id);
+
+        // get category
+        Category category = categoryRepository.findById(product.getCategory().getId())
+                .orElseThrow(() -> new RuntimeException("Category not found with id" + product.getCategory().getId()));
+        // update
+        if (product.getName() != null && !product.getName().isBlank()) {
+            currenProduct.setName(product.getName());
+        }
+
+        if (product.getDescription() != null) {
+            currenProduct.setDescription(product.getDescription());
+        }
+
+        if (product.getPrice() != null && product.getPrice() > 0) {
+            currenProduct.setPrice(product.getPrice());
+        }
+
+        if (product.getQuantity() != null && product.getQuantity() >= 0) {
+            currenProduct.setQuantity(product.getQuantity());
+        }
+
+        if (product.getImageUrl() != null) {
+            currenProduct.setImageUrl(product.getImageUrl());
+        }
+
+        if (category != null) {
+            currenProduct.setCategory(category);
+        }
+
+        if (product.getLowStockThreshold() != null && product.getLowStockThreshold() >= 0) {
+            currenProduct.setLowStockThreshold(product.getLowStockThreshold());
+        }
+
+        return productRepository.save(currenProduct);
     }
 
+    public Product deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id" + id));
+        product.setIsActive(false);
+        return productRepository.save(product);
+    }
 }

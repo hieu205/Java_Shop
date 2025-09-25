@@ -2,9 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Comment;
 import com.example.demo.service.CommentService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.yaml.snakeyaml.events.CommentEvent;
 
 import java.util.List;
 
@@ -14,49 +19,45 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    // Create comment
-    @PostMapping
-    public ResponseEntity<Comment> addComment(@RequestBody Comment comment) {
-        return ResponseEntity.ok(commentService.addComment(comment));
+    // lay binh luan cua san pham
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<Comment>> getCommentByProductId(@PathVariable Long productId) {
+        return ResponseEntity.ok(commentService.getCommentsByProductId(productId));
     }
 
-    // get all comment
-    @GetMapping
-    public ResponseEntity<List<Comment>> getAllComments() {
-        return ResponseEntity.ok(commentService.getAllComments());
-    }
-
-    // get comment by Id
+    // lay chi tiet binh luan theo id
     @GetMapping("/{id}")
     public ResponseEntity<Comment> getCommentById(@PathVariable Long id) {
         return ResponseEntity.ok(commentService.getCommentById(id));
     }
 
-    // Get comments by productId
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Comment>> getCommentsByProductId(@PathVariable Long productId) {
-        return ResponseEntity.ok(commentService.getCommentsByProductId(productId));
+    // tao binh luan moi
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/product/{productId}/user/{userId}")
+    public ResponseEntity<Comment> createComment(@PathVariable Long productId, @PathVariable Long userId,
+            @Valid @RequestBody Comment comment) {
+        return ResponseEntity.ok(commentService.createComment(productId, userId, comment));
     }
 
-    // Get comments by userId
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Comment>> getCommentsByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(commentService.getCommentsByUserId(userId));
+    // reply binh luan (chi danh chp staff or admin)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    @PostMapping("/{commentId}/reply/user/{userId}")
+    public ResponseEntity<Comment> replyComment(@PathVariable Long commentId, @PathVariable Long userId,
+            @Valid @RequestBody Comment comment) {
+        return ResponseEntity.ok(commentService.replyComment(commentId, userId, comment));
     }
 
-    // Update
+    // cap nhat binh luan
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Comment> updateComment(
-            @PathVariable Long id,
-            @RequestBody Comment comment) {
-        return ResponseEntity.ok(commentService.updateCommentById(id, comment));
+    public ResponseEntity<Comment> updateComment(@PathVariable Long id, @Valid @RequestBody Comment comment) {
+        return ResponseEntity.ok(commentService.updateComment(id, comment));
     }
 
-    // Delete
+    // xoa binh luan
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteComment(@PathVariable Long id) {
-        commentService.deleteCommentById(id);
-        return ResponseEntity.ok("Comment deleted successfully");
+        return ResponseEntity.ok(commentService.deleteComment(id));
     }
-
 }

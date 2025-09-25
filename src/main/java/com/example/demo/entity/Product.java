@@ -1,29 +1,67 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
+import java.util.List;
 
 @Entity
-@Table(name = "Product")
+@Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(max = 200)
+    @Column(nullable = false, length = 200)
     private String name;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Column(nullable = false, precision = 15, scale = 2)
     private Long price;
-    private Integer quantity;
+
+    @Min(0)
+    @Column(nullable = false)
+    private Integer quantity = 0;
+
+    @Min(0)
+    private Integer lowStockThreshold = 10;
+
+    private Boolean isActive = true;
+
+    @Size(max = 500)
+    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<Comment> comments;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<CartItem> cartItems;
+
+    // Constructor mặc định
+    public Product() {
+    }
+
+    // Constructor cho các field cơ bản
+    public Product(String name, String description, Long price, Integer quantity, Category category) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+        this.category = category;
+    }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -82,8 +120,15 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-    private Integer lowStockThreshold;
-    private Boolean isActive = true;
-    private String imageUrl;
+    public Category getCategory() {
+        return category;
+    }
 
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public boolean isLowStock() {
+        return quantity <= lowStockThreshold;
+    }
 }

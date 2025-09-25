@@ -1,64 +1,93 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Comment;
+import com.example.demo.entity.Product;
+import com.example.demo.entity.User;
 import com.example.demo.repository.CommentRepository;
+import com.example.demo.repository.ProductRepository;
+import com.example.demo.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.events.CommentEvent;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class CommentService {
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    // Create
-    public Comment addComment(Comment comment) {
-        return commentRepository.save(comment);
-    }
-
-    // Read all
-    public List<Comment> getAllComments() {
-        return commentRepository.findAll();
-    }
-
-    // Read by Id
-    public Comment getCommentById(Long id) {
-        return commentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
-    }
-
-    // Read comments by ProductId
     public List<Comment> getCommentsByProductId(Long productId) {
-        return commentRepository.findByProductId(productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product Id not found with by id" + productId));
+        return commentRepository.findRootCommentsByProductId(productId);
+
     }
 
-    // Read comments by UserId
-    public List<Comment> getCommentsByUserId(Long userId) {
-        return commentRepository.findByUserId(userId);
+    public Comment getCommentById(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id" + id));
+        return comment;
     }
 
-    // Update
-    public Comment updateCommentById(Long id, Comment newComment) {
-        Comment comment = getCommentById(id);
-
-        if (newComment.getContent() != null && !newComment.getContent().isEmpty()) {
-            comment.setContent(newComment.getContent());
-        }
-
-        if (newComment.getUserId() != null) {
-            comment.setUserId(newComment.getUserId());
-        }
-
-        if (newComment.getProductId() != null) {
-            comment.setProductId(newComment.getProductId());
-        }
-
-        return commentRepository.save(comment);
+    public Comment createComment(Long productId, Long userId, Comment newcComment) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("product not found with id " + productId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id" + userId));
+        Comment comment = Comment.builder()
+                .content(newcComment.getContent())
+                .product(product)
+                .user(user)
+                .parentComment(null)
+                .createdAt(LocalDateTime.now())
+                .isStaffReply("STAFF".equals(user.getRole().getName()) || "ADMIN".equals(user.getRole().getName()))
+                .build();
+        Comment savedComment = commentRepository.save(comment);
+        return savedComment;
     }
 
-    // Delete
-    public void deleteCommentById(Long id) {
-        commentRepository.deleteById(id);
+    public Comment replyComment(Long commentId, Long userId, Comment newComment) {
+        Comment parentComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id " + commentId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("user not found with id " + userId));
+
+        Comment reply = Comment.builder()
+                .content(newComment.getContent())
+                .product(parentComment.getProduct())
+                .user(user)
+                .parentComment(parentComment)
+                .createdAt(LocalDateTime.now())
+                .isStaffReply("STAFF".equals(user.getRole().getName()) || "ADMIN".equals(user.getRole().getName()))
+                .build();
+
+        Comment savedComment = commentRepository.save(reply);
+        return savedComment;
+    }
+
+    public Comment updateComment(Long id, Comment comment) {
+        Comment currentComment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id " + id));
+        currentComment.setContent(comment.getContent());
+        return commentRepository.save(currentComment);
+    }
+
+    public String deleteComment(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("comment not found with id " + id));
+        List<Comment> replies = commentRepository.findRepliesByParentId(id);
+        if (!replies.isEmpty()) {
+            commentRepository.deleteAll(replies);
+        }
+        commentRepository.delete(comment);
+        return "xoa comment thanh cong";
     }
 }

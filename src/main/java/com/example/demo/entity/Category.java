@@ -1,72 +1,73 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+import java.util.List;
+import java.util.Objects;
 
 @Entity
-@Table(name = "category")
+@Table(name = "categories")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = { "parentCategory", "subCategories", "products" })
 public class Category {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categories_seq")
+    @SequenceGenerator(name = "categories_seq", sequenceName = "categories_seq", allocationSize = 1)
     private Long id;
 
+    @NotBlank
+    @Size(max = 100)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
+
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
-    private Boolean isActive = true;
+
+    @Column(name = "image_url")
     private String imageUrl;
 
-    // Contructor mặc định
-    public Category() {
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_category_id")
+    private Category parentCategory;
 
-    // Contructor đầy đủ
+    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.LAZY)
+    private List<Category> subCategories;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private List<Product> products;
+
+    @Column(name = "is_active")
+    @Builder.Default
+    private Boolean isActive = true;
+
+    // Custom constructor cho các trường thiết yếu
     public Category(String name, String description, String imageUrl) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
+        this.isActive = true;
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Category category = (Category) o;
+        return Objects.equals(id, category.id);
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
 }
