@@ -50,7 +50,7 @@ public class CategoryService {
         return categoryResponses;
     }
 
-    public Category createCategory(Category category) {
+    public CategoryResponse createCategory(Category category) {
 
         // Kiểm tra parent category (nếu có)
         Category parentCategory = null;
@@ -79,10 +79,11 @@ public class CategoryService {
                 .build();
 
         // Lưu vào DB
-        return categoryRepository.save(newCategory);
+        categoryRepository.save(newCategory);
+        return CategoryResponse.fromEntity(newCategory);
     }
 
-    public Category updateCategoryById(Long id, Category updateCategory) {
+    public CategoryResponse updateCategoryById(Long id, Category updateCategory) {
         // Lấy category từ DB
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
@@ -121,11 +122,12 @@ public class CategoryService {
         category.setImageUrl(updateCategory.getImageUrl());
         category.setIsActive(true); // luôn active
 
-        // Lưu vào DB
-        return categoryRepository.save(category);
+        categoryRepository.save(category);
+
+        return CategoryResponse.fromEntity(category);
     }
 
-    public Category deleteCategory(Long id) {
+    public CategoryResponse deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
 
@@ -141,7 +143,8 @@ public class CategoryService {
 
         // Soft delete
         category.setIsActive(false);
-        return categoryRepository.save(category);
+        categoryRepository.save(category);
+        return CategoryResponse.fromEntity(category);
     }
 
 }

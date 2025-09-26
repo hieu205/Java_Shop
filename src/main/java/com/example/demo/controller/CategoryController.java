@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.response.CategoryResponse;
 import com.example.demo.entity.Category;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import com.example.demo.service.CategoryService;
 
 import jakarta.validation.Valid;
 
+import java.net.CacheResponse;
 import java.util.List;
 
 @RestController
@@ -25,76 +27,44 @@ import java.util.List;
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
-    // //
-    // // create category
-    // @PostMapping("/register")
-    // public ResponseEntity<Category> registerCategory(@RequestBody Category
-    // categori) {
-    // return ResponseEntity.ok(categoryService.registerCategory(categori));
-    // }
-
-    // // Get category by id
-    // @GetMapping("/{id}")
-    // public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
-    // return ResponseEntity.ok(categoryService.getCategoryById(id));
-    // }
-
-    // // get categoryIsActive
-    // @GetMapping
-    // public ResponseEntity<List<Category>> getCategoryIsActive() {
-    // return ResponseEntity.ok(categoryService.getIsActiveCategory());
-    // }
-
-    // // Update Category by id
-    // @PutMapping("/{id}")
-    // public ResponseEntity<Category> updateCategoriById(@PathVariable Long id,
-    // @RequestBody Category category) {
-    // return ResponseEntity.ok(categoryService.updateCategoryById(id, category));
-    // }
-
-    // // Delete Category By Id
-    // @DeleteMapping("/{id}")
-    // public ResponseEntity<String> deleteCategoryById(@PathVariable Long id) {
-    // categoryService.deleteCategoryById(id);
-    // return ResponseEntity.ok("Xoa category thanh cong");
-    // }
 
     // lay tat ca cac danh muc dang hoat dong
     @GetMapping()
-    public ResponseEntity<List<Category>> getAllActiveCategories() {
+    public ResponseEntity<List<CategoryResponse>> getAllActiveCategories() {
         return ResponseEntity.ok(categoryService.getAllActiveCategories());
     }
 
     // lay chi tiet danh muc theo Id
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
     // lay danh muc con theo Parent Id
     @GetMapping("/parent/{parentId}")
-    public ResponseEntity<List<Category>> getCategoriesByParentId(@PathVariable Long parentId) {
+    public ResponseEntity<List<CategoryResponse>> getCategoriesByParentId(@PathVariable Long parentId) {
         return ResponseEntity.ok(categoryService.getSubCategories(parentId));
     }
 
     // tao danh muc moi ( chi co Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody Category category) {
         return ResponseEntity.ok(categoryService.createCategory(category));
     }
 
     // cap nhat dang muc (chi co Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategoryById(@PathVariable Long id, @Valid @RequestBody Category category) {
+    public ResponseEntity<CategoryResponse> updateCategoryById(@PathVariable Long id,
+            @Valid @RequestBody Category category) {
         return ResponseEntity.ok(categoryService.updateCategoryById(id, category));
     }
 
     // xoa danh muc by Id
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Category> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<CategoryResponse> deleteCategory(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.deleteCategory(id));
     }
 }
