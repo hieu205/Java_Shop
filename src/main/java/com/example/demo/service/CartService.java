@@ -84,7 +84,7 @@ public class CartService {
             newItem.setQuantity(cartItem.getQuantity()); // gán số lượng
 
             // thêm vào list để duy trì quan hệ 2 chiều
-            cart.getItems().add(newItem);
+            cart.getCartItems().add(newItem);
 
             cartItemRepository.save(newItem);
         }

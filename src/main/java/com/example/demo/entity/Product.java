@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -23,7 +24,7 @@ public class Product {
     @NotNull
     @DecimalMin(value = "0.0", inclusive = false)
     @Column(nullable = false, precision = 15, scale = 2)
-    private Long price;
+    private BigDecimal price;
 
     @Min(0)
     @Column(nullable = false)
@@ -52,7 +53,7 @@ public class Product {
     }
 
     // Constructor cho các field cơ bản
-    public Product(String name, String description, Long price, Integer quantity, Category category) {
+    public Product(String name, String description, BigDecimal price, Integer quantity, Category category) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -80,11 +81,11 @@ public class Product {
         this.description = description;
     }
 
-    public Long getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Long price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

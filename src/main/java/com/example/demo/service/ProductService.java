@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,7 @@ public class ProductService {
         }
 
         // gia > 0
-        if (product.getPrice() == null || product.getPrice() <= 0) {
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Giá sản phẩm phải > 0");
         }
 
@@ -97,7 +98,7 @@ public class ProductService {
             currenProduct.setDescription(product.getDescription());
         }
 
-        if (product.getPrice() != null && product.getPrice() > 0) {
+        if (product.getPrice() != null && product.getPrice().compareTo(BigDecimal.ZERO) > 0) {
             currenProduct.setPrice(product.getPrice());
         }
 

@@ -37,7 +37,7 @@ public class Cart {
         this.user = user;
     }
 
-    public List<CartItem> getItems() {
+    public List<CartItem> getCartItems() {
         return cartItems;
     }
 
