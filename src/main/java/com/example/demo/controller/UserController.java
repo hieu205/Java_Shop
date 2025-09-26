@@ -19,6 +19,7 @@ import com.example.demo.service.UserService;
 
 import jakarta.validation.Valid;
 
+import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
 
 import java.util.List;
@@ -43,9 +44,9 @@ public class UserController {
     }
 
     // dang ki ng dung
-    @PostMapping("/Register")
-    public ResponseEntity<User> register(@Valid @RequestBody User newuser) {
-        User saveUser = userService.register(newuser);
+    @PostMapping("/register ")
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody User newuser) {
+        UserResponse saveUser = userService.register(newuser);
         return ResponseEntity.status(HttpStatus.CREATED).body(saveUser);
     }
 
@@ -53,14 +54,14 @@ public class UserController {
 
     // lay thong tin profile cua user hien tai
     @GetMapping("/profile")
-    public ResponseEntity<User> getCurrentUserProfile(@RequestParam String username) {
-        User currentUser = userService.getCurrentUserProfile(username);
+    public ResponseEntity<UserResponse> getCurrentUserProfile(@RequestParam String username) {
+        UserResponse currentUser = userService.getCurrentUserProfile(username);
         return ResponseEntity.ok(currentUser);
     }
 
     // cap nhat thong tin cho profile hien tai
     @PutMapping("/profile")
-    public ResponseEntity<User> updateCurrentUserProfile(@PathVariable String username,
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(@PathVariable String username,
             @Valid @RequestBody User updateUser) {
         return ResponseEntity.ok(userService.updateCurrentUserProfile(username, updateUser));
     }
@@ -70,21 +71,21 @@ public class UserController {
     // tao user moi (chi danh cho Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User newUser) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody User newUser) {
         return ResponseEntity.ok(userService.createUser(newUser));
     }
 
     // lay ve tat ca nguoi dung (chi danh cho Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<User>> getAllUser() {
+    public ResponseEntity<List<UserResponse>> getAllUser() {
         return ResponseEntity.ok(userService.getAllUser());
     }
 
     // lay chi tiet nguoi dung theo ID (chi danh cho Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -95,7 +96,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUserById(@PathVariable Long id, @Valid @RequestBody User newUser) {
+    public ResponseEntity<UserResponse> updateUserById(@PathVariable Long id, @Valid @RequestBody User newUser) {
         return ResponseEntity.ok(userService.updateUserById(id, newUser));
     }
 
@@ -112,14 +113,14 @@ public class UserController {
     // lay thong tin nguoi dung theo username
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
     // lay danh sach user theo role
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<User>> getUserByRole(@PathVariable String role) {
+    public ResponseEntity<List<UserResponse>> getUserByRole(@PathVariable String role) {
         return ResponseEntity.ok(userService.getUserByRole(role));
     }
 

@@ -17,35 +17,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated() // yêu cầu login
-                )
-                .httpBasic(Customizer.withDefaults()); // dùng Basic Auth
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/v1/users/register").permitAll()
+                                                .anyRequest().authenticated() // yêu cầu login
+                                )
+                                .httpBasic(Customizer.withDefaults()); // dùng Basic Auth
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public UserDetailsService users() {
-        UserDetails admin = User.withUsername("admin")
-                .password("{noop}123") // {noop} = không mã hoá
-                .roles("ADMIN")
-                .build();
+        @Bean
+        public UserDetailsService users() {
+                UserDetails admin = User.withUsername("admin")
+                                .password("{noop}123") // {noop} = không mã hoá
+                                .roles("ADMIN")
+                                .build();
 
-        UserDetails staff = User.withUsername("staff")
-                .password("{noop}123")
-                .roles("STAFF")
-                .build();
+                UserDetails staff = User.withUsername("staff")
+                                .password("{noop}123")
+                                .roles("STAFF")
+                                .build();
 
-        UserDetails user = User.withUsername("user")
-                .password("{noop}123")
-                .roles("USER")
-                .build();
+                UserDetails user = User.withUsername("user")
+                                .password("{noop}123")
+                                .roles("USER")
+                                .build();
 
-        return new InMemoryUserDetailsManager(admin, staff, user);
-    }
+                return new InMemoryUserDetailsManager(admin, staff, user);
+        }
 }

@@ -3,11 +3,13 @@ package com.example.demo.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,7 +49,7 @@ public class UserService {
         return false;
     }
 
-    public User register(User user) {
+    public UserResponse register(User user) {
 
         // check cac gia tri null truoc khi xu li
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
@@ -69,10 +71,12 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email đã tồn tại");
         }
-        return userRepository.save(user);
+
+        userRepository.save(user);
+        return UserResponse.fromEntity(user);
     }
 
-    public User createUser(User newUser) {
+    public UserResponse createUser(User newUser) {
 
         // check gia tri null truoc khi xu li
         if (newUser.getUsername() == null || newUser.getUsername().trim().isEmpty()) {
@@ -95,26 +99,36 @@ public class UserService {
             throw new RuntimeException("Email da ton tai");
         }
 
-        return userRepository.save((newUser));
+        userRepository.save((newUser));
+        // UserResponse userResponse = new UserResponse();
+        return UserResponse.fromEntity(newUser);
     }
 
-    public List<User> getAllUser() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUser() {
+        List<User> users = userRepository.findAll();
+        List<UserResponse> userResponses = new ArrayList<>();
+        for (User user : users) {
+            userResponses.add(UserResponse.fromEntity(user));
+        }
+        return userResponses;
     }
 
-    public User getUserById(Long id) {
+    public UserResponse getUserById(Long id) {
         User saveUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại với id: " + id));
         if (saveUser.getIsActive() == false) {
             throw new RuntimeException("Tai khoan da bi khoa ");
         }
-        return saveUser;
+
+        return UserResponse.fromEntity(saveUser);
+        // return userResponse;
     }
 
-    public User updateUserById(Long id, User newUser) {
+    public UserResponse updateUserById(Long id, User newUser) {
 
         // da check ngoai le o ham getUserById
-        User user = getUserById(id);
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("User not found with id " + id));
 
         // Username khong duoc thay doi
         if (newUser.getUsername() != null && !user.getUsername().equals(newUser.getUsername())) {
@@ -152,7 +166,8 @@ public class UserService {
             user.setPhone(newUser.getPhone());
         }
 
-        return userRepository.save(user);
+        userRepository.save(user);
+        return UserResponse.fromEntity(user);
     }
 
     public void deleteUserById(Long id) {
@@ -163,12 +178,17 @@ public class UserService {
         userRepository.save(saveUser);
     }
 
-    public User getCurrentUserProfile(String username) {
+    public UserResponse getCurrentUserProfile(String username) {
         User currentUser = userRepository.findByUsername(username);
-        return currentUser;
+        if (currentUser == null) {
+            throw new RuntimeException("Username not found with Username" + username);
+        }
+
+        return UserResponse.fromEntity(currentUser);
+
     }
 
-    public User updateCurrentUserProfile(String username, User updateUser) {
+    public UserResponse updateCurrentUserProfile(String username, User updateUser) {
 
         // check username
         User currentUser = userRepository.findByUsername(username);
@@ -185,22 +205,28 @@ public class UserService {
         currentUser.setFullName(updateUser.getFullName());
         currentUser.setPhone(updateUser.getPhone());
         currentUser.setAddress(updateUser.getAddress());
-        return userRepository.save(currentUser);
+        userRepository.save(currentUser);
+
+        return UserResponse.fromEntity(currentUser);
     }
 
-    public User getUserByUsername(String username) {
+    public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("Username khong ton tai");
         }
-        return user;
+        return UserResponse.fromEntity(user);
     }
 
-    public List<User> getUserByRole(String role) {
+    public List<UserResponse> getUserByRole(String role) {
         Role entityRole = roleRepository.findByName(role.toUpperCase())
                 .orElseThrow(() -> new RuntimeException("Role not found " + role));
-        List<User> user = userRepository.findByRole(entityRole);
-        return user;
+        List<User> users = userRepository.findByRole(entityRole);
+        List<UserResponse> userResponses = new ArrayList<>();
+        for (User user : users) {
+            userResponses.add(UserResponse.fromEntity(user));
+        }
+        return userResponses;
     }
 
     public Boolean checkUsernameExists(String username) {
