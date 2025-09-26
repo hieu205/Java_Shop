@@ -147,5 +147,6 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found with id" + id));
         product.setIsActive(false);
         Product deleteProduct = productRepository.save(product);
+        return ProductResponse.fromEntity(deleteProduct);
     }
 }
