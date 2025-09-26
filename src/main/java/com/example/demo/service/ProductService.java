@@ -1,15 +1,19 @@
 package com.example.demo.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.entity.Category;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.ProductRepository;
+
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -20,11 +24,16 @@ public class ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findByIsActiveTrue();
+    public List<ProductResponse> getAllProducts() {
+        List<Product> products = productRepository.findByIsActiveTrue();
+        List<ProductResponse> productResponses = new ArrayList<>();
+        for (Product product : products) {
+            productResponses.add(ProductResponse.fromEntity(product));
+        }
+        return productResponses;
     }
 
-    public Product getProductById(Long id) {
+    public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id " + id));
 
@@ -32,10 +41,10 @@ public class ProductService {
             throw new RuntimeException("san pham chua Active");
         }
 
-        return product;
+        return ProductResponse.fromEntity(product);
     }
 
-    public List<Product> getProductByCategory(Long categoryId) {
+    public List<ProductResponse> getProductByCategory(Long categoryId) {
 
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Category ID không hợp lệ");
@@ -44,14 +53,24 @@ public class ProductService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
 
-        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+        List<Product> products = productRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+        List<ProductResponse> productResponses = new ArrayList<>();
+        for (Product product : products) {
+            productResponses.add(ProductResponse.fromEntity(product));
+        }
+        return productResponses;
     }
 
-    public List<Product> searchProducts(String keyword) {
-        return productRepository.searchActiveProductsNoPage(keyword);
+    public List<ProductResponse> searchProducts(String keyword) {
+        List<Product> products = productRepository.searchActiveProductsNoPage(keyword);
+        List<ProductResponse> productResponses = new ArrayList<>();
+        for (Product product : products) {
+            productResponses.add(ProductResponse.fromEntity(product));
+        }
+        return productResponses;
     }
 
-    public Product createProduct(Product product) {
+    public ProductResponse createProduct(Product product) {
         Category category = categoryRepository.findById(product.getCategory().getId())
                 .orElseThrow(() -> new RuntimeException("Category not founf with id " + product.getCategory().getId()));
         if (category.getIsActive() == false) {
@@ -74,10 +93,11 @@ public class ProductService {
 
         product.setCategory(category);
 
-        return productRepository.save(product);
+        Product newProduct = productRepository.save(product);
+        return ProductResponse.fromEntity(newProduct);
     }
 
-    public Product updatedProduct(Long id, Product product) {
+    public ProductResponse updatedProduct(Long id, Product product) {
 
         Product currenProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("ProductId not found with id " + id));
@@ -118,13 +138,14 @@ public class ProductService {
             currenProduct.setLowStockThreshold(product.getLowStockThreshold());
         }
 
-        return productRepository.save(currenProduct);
+        Product updateProduct = productRepository.save(currenProduct);
+        return ProductResponse.fromEntity(updateProduct);
     }
 
-    public Product deleteProduct(Long id) {
+    public ProductResponse deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id" + id));
         product.setIsActive(false);
-        return productRepository.save(product);
+        Product deleteProduct = productRepository.save(product);
     }
 }
