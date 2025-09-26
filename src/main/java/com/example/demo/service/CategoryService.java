@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.response.CategoryResponse;
 import com.example.demo.entity.Category;
 
 // import org.bson.types.ObjectId;
@@ -13,6 +14,7 @@ import com.example.demo.repository.CategoryRepository;
 
 import jakarta.websocket.server.PathParam;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,21 +23,31 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<Category> getAllActiveCategories() {
-        return categoryRepository.findByIsActiveTrue();
+    public List<CategoryResponse> getAllActiveCategories() {
+        List<Category> categories = categoryRepository.findByIsActiveTrue();
+        List<CategoryResponse> categoryResponses = new ArrayList<>();
+        for (Category category : categories) {
+            categoryResponses.add(CategoryResponse.fromEntity(category));
+        }
+        return categoryResponses;
     }
 
-    public Category getCategoryById(Long id) {
+    public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
         if (category.getIsActive() == false) {
             throw new RuntimeException("Categoty not Active");
         }
-        return category;
+        return CategoryResponse.fromEntity(category);
     }
 
-    public List<Category> getSubCategories(Long parentCategoryId) {
-        return categoryRepository.findActiveSubCategories(parentCategoryId);
+    public List<CategoryResponse> getSubCategories(Long parentCategoryId) {
+        List<Category> categories = categoryRepository.findActiveSubCategories(parentCategoryId);
+        List<CategoryResponse> categoryResponses = new ArrayList<>();
+        for (Category category : categories) {
+            categoryResponses.add(CategoryResponse.fromEntity(category));
+        }
+        return categoryResponses;
     }
 
     public Category createCategory(Category category) {
