@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.response.CartResponse;
 import com.example.demo.entity.Cart;
 import com.example.demo.entity.CartItem;
 import com.example.demo.entity.Product;
@@ -42,12 +43,12 @@ public class CartService {
                 });
     }
 
-    public Cart getUserCart(Long userId) {
+    public CartResponse getUserCart(Long userId) {
         Cart cart = getOrCreateCart(userId);
-        return cart;
+        return CartResponse.fromEntity(cart);
     }
 
-    public Cart addItemToCart(Long userId, CartItem cartItem) {
+    public CartResponse addItemToCart(Long userId, CartItem cartItem) {
         Cart cart = getOrCreateCart(userId);
 
         Product product = productRepository.findById(cartItem.getProduct().getId())
@@ -89,10 +90,10 @@ public class CartService {
             cartItemRepository.save(newItem);
         }
         cartRepository.save(cart);
-        return cart;
+        return CartResponse.fromEntity(cart);
     }
 
-    public Cart updateQuantityCartItem(Long userId, Long itemId, Integer quantity) {
+    public CartResponse updateQuantityCartItem(Long userId, Long itemId, Integer quantity) {
 
         // da check ngoai le o ham getOrCreateCart
         Cart cart = getOrCreateCart(userId);
@@ -124,7 +125,7 @@ public class CartService {
 
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);
-        return cart;
+        return CartResponse.fromEntity(cart);
     }
 
     public String removeItemFromCart(Long userId, Long cartItemId) {

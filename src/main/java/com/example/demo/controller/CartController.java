@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.response.CartResponse;
 import com.example.demo.entity.Cart;
 import com.example.demo.entity.CartItem;
 import com.example.demo.service.CartService;
@@ -22,21 +23,22 @@ public class CartController {
     // lay gio hang cua user
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Cart> getUserCart(@PathVariable Long userId) {
+    public ResponseEntity<CartResponse> getUserCart(@PathVariable Long userId) {
         return ResponseEntity.ok(cartService.getUserCart(userId));
     }
 
     // them san pham vao gio hang
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @PostMapping("/user/{userId}/items")
-    public ResponseEntity<Cart> addItemToCart(@PathVariable Long userId, @Valid @RequestBody CartItem cartItem) {
+    public ResponseEntity<CartResponse> addItemToCart(@PathVariable Long userId,
+            @Valid @RequestBody CartItem cartItem) {
         return ResponseEntity.ok(cartService.addItemToCart(userId, cartItem));
     }
 
     // cap nhat so luong san pham trong gio hang
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @PutMapping("/user/{userId}/items/{itemId}")
-    public ResponseEntity<Cart> updateQuantityCartItem(@PathVariable Long userId, @PathVariable Long itemId,
+    public ResponseEntity<CartResponse> updateQuantityCartItem(@PathVariable Long userId, @PathVariable Long itemId,
             @RequestParam Integer quantity) {
         return ResponseEntity.ok(cartService.updateQuantityCartItem(userId, itemId, quantity));
     }
