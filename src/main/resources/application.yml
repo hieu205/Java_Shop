@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: demo
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # show-sql: true   # bật nếu muốn in SQL log
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/pc_shop
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+app:
+  jwt:
+    secret: SxyndpU98/YcUayHkOlXYgkHKVdgZbqytDTYgGx3cs0=
+    expiration: 2592000000           
+    refresh-token:
+      expiration: 7776000000

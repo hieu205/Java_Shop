@@ -53,7 +53,7 @@ public class UserResponse {
                 .fullName(user.getFullName())
                 .phone(user.getPhone())
                 .address(user.getAddress())
-                .role(user.getRole().toString())
+                .role(RoleResponse.fromEntity(user.getRole()).getId().toString())
                 .isActive(user.getIsActive())
                 // .createdAt(user.getCreatedAt())
                 // .updatedAt(user.getUpdatedAt())

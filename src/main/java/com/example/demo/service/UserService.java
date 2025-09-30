@@ -2,7 +2,11 @@ package com.example.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.demo.dto.response.AuthResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -14,16 +18,19 @@ import java.util.List;
 
 @Service
 public class UserService {
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private RoleRepository roleRepository;
+    private AuthenticationManager authenticationManager;
+    private TokenService tokenService;
 
     // check login
-    public boolean checkLogin(String username, String password) {
-
+    public AuthResponse checkLogin(String username, String password) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username không được để trống");
         }
@@ -31,6 +38,11 @@ public class UserService {
         if (password == null || password.trim().isEmpty()) {
             throw new IllegalArgumentException("Password không được để trống");
         }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        username,
+                        password));
 
         User user = userRepository.findByUsername(username);
 
@@ -42,14 +54,19 @@ public class UserService {
             throw new RuntimeException("Tài khoản đã bị khóa");
         }
 
-        if (password.equals(user.getPassword())) {
-            return true;
-        }
+        String accessToken = tokenService.generateToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
 
-        return false;
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(30L * 24 * 60 * 60)
+                .user(UserResponse.fromEntity(user))
+                .build();
     }
 
-    public UserResponse register(User user) {
+    public AuthResponse register(User user) {
 
         // check cac gia tri null truoc khi xu li
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
@@ -72,8 +89,31 @@ public class UserService {
             throw new RuntimeException("Email đã tồn tại");
         }
 
-        userRepository.save(user);
-        return UserResponse.fromEntity(user);
+        if (3 != user.getRole().getId()) {
+            throw new IllegalArgumentException("Chỉ được phép đăng ký với role USER có id = 3");
+        }
+        User newUser = User.builder()
+                .username(user.getUsername())
+                .password(passwordEncoder.encode(user.getPassword()))
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .role(user.getRole())
+                .isActive(true)
+                .build();
+        User saveUser = userRepository.save(newUser);
+
+        String accessToken = tokenService.generateToken(saveUser);
+        String refreshToken = tokenService.generateRefreshToken(saveUser);
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(30L * 24 * 60 * 60)
+                .user(UserResponse.fromEntity(saveUser))
+                .build();
     }
 
     public UserResponse createUser(User newUser) {
@@ -99,9 +139,18 @@ public class UserService {
             throw new RuntimeException("Email da ton tai");
         }
 
-        userRepository.save((newUser));
-        // UserResponse userResponse = new UserResponse();
-        return UserResponse.fromEntity(newUser);
+        User user = User.builder()
+                .username(newUser.getUsername())
+                .password(passwordEncoder.encode(newUser.getPassword()))
+                .email(newUser.getEmail())
+                .fullName(newUser.getFullName())
+                .phone(newUser.getPhone())
+                .address(newUser.getAddress())
+                .role(newUser.getRole())
+                .isActive(true)
+                .build();
+        User saveUser = userRepository.save(user);
+        return UserResponse.fromEntity(saveUser);
     }
 
     public List<UserResponse> getAllUser() {
