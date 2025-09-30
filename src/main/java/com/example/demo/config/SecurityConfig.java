@@ -48,7 +48,7 @@ public class SecurityConfig {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors().disable()
                                 .authorizeHttpRequests(auth -> auth
-                                                // ==== PUBLIC ENDPOINTS ====
+                                                // public
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/users/refresh-token")
@@ -63,7 +63,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/h2-console/**", "/actuator/**", "/error", "/")
                                                 .permitAll()
 
-                                                // ==== ADMIN ONLY ====
+                                                // admin
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/users/role/**")
                                                 .hasRole("ADMIN")
@@ -100,13 +100,13 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/inventory/products/*/release")
                                                 .hasRole("ADMIN")
 
-                                                // ==== STAFF & ADMIN ====
+                                                // staff and admin
                                                 .requestMatchers("/api/v1/inventory/**").hasAnyRole("STAFF", "ADMIN")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/comments/*/reply")
                                                 .hasAnyRole("STAFF", "ADMIN")
                                                 .requestMatchers("/api/v1/orders/*/status").hasAnyRole("STAFF", "ADMIN")
 
-                                                // ==== CUSTOMER, STAFF, ADMIN ====
+                                                // customer, staff, admin
                                                 .requestMatchers("/api/v1/cart/**")
                                                 .hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
                                                 .requestMatchers("/api/v1/orders/**")
@@ -116,7 +116,6 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/comments/**")
                                                 .hasAnyRole("CUSTOMER", "STAFF", "ADMIN")
 
-                                                // ==== DEFAULT: AUTH REQUIRED ====
                                                 .anyRequest().authenticated())
 
                                 .sessionManagement(session -> session
