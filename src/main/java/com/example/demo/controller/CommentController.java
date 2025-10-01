@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.request.CommentRequest;
 import com.example.demo.dto.response.CommentResponse;
 import com.example.demo.entity.Comment;
 import com.example.demo.service.CommentService;
@@ -36,23 +37,24 @@ public class CommentController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/product/{productId}/user/{userId}")
     public ResponseEntity<CommentResponse> createComment(@PathVariable Long productId, @PathVariable Long userId,
-            @Valid @RequestBody Comment comment) {
-        return ResponseEntity.ok(commentService.createComment(productId, userId, comment));
+            @Valid @RequestBody CommentRequest request) {
+        return ResponseEntity.ok(commentService.createComment(productId, userId, request));
     }
 
     // reply binh luan (chi danh chp staff or admin)
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @PostMapping("/{commentId}/reply/user/{userId}")
     public ResponseEntity<CommentResponse> replyComment(@PathVariable Long commentId, @PathVariable Long userId,
-            @Valid @RequestBody Comment comment) {
-        return ResponseEntity.ok(commentService.replyComment(commentId, userId, comment));
+            @Valid @RequestBody CommentRequest request) {
+        return ResponseEntity.ok(commentService.replyComment(commentId, userId, request));
     }
 
     // cap nhat binh luan
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable Long id, @Valid @RequestBody Comment comment) {
-        return ResponseEntity.ok(commentService.updateComment(id, comment));
+    public ResponseEntity<CommentResponse> updateComment(@PathVariable Long id,
+            @Valid @RequestBody CommentRequest request) {
+        return ResponseEntity.ok(commentService.updateComment(id, request));
     }
 
     // xoa binh luan

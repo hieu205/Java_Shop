@@ -6,6 +6,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.demo.dto.request.LoginRequest;
+import com.example.demo.dto.request.ProfileUpdateRequest;
+import com.example.demo.dto.request.RegisterRequest;
+import com.example.demo.dto.request.UserRequest;
 import com.example.demo.dto.response.AuthResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.Role;
@@ -30,21 +34,21 @@ public class UserService {
     private TokenService tokenService;
 
     // check login
-    public AuthResponse checkLogin(String username, String password) {
-        if (username == null || username.trim().isEmpty()) {
+    public AuthResponse checkLogin(LoginRequest loginRequest) {
+        if (loginRequest.getUsername() == null || loginRequest.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Username không được để trống");
         }
 
-        if (password == null || password.trim().isEmpty()) {
+        if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
             throw new IllegalArgumentException("Password không được để trống");
         }
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        username,
-                        password));
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()));
 
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(loginRequest.getUsername());
 
         if (user == null) {
             throw new RuntimeException("Ten dang nhap hoac tai khoan khong dung");
@@ -66,42 +70,42 @@ public class UserService {
                 .build();
     }
 
-    public AuthResponse register(User user) {
+    public AuthResponse register(RegisterRequest registerRequest) {
 
         // check cac gia tri null truoc khi xu li
-        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+        if (registerRequest.getUsername() == null || registerRequest.getUsername().trim().isEmpty()) {
             throw new IllegalArgumentException("Username không được để trống");
         }
-        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+        if (registerRequest.getPassword() == null || registerRequest.getPassword().trim().isEmpty()) {
             throw new IllegalArgumentException("Password không được để trống");
         }
-        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+        if (registerRequest.getEmail() == null || registerRequest.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email không được để trống");
         }
 
         // check username
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new RuntimeException("User name đã tồn tại");
         }
 
         // check email
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new RuntimeException("Email đã tồn tại");
         }
 
-        if (3 != user.getRole().getId()) {
-            throw new IllegalArgumentException("Chỉ được phép đăng ký với role USER có id = 3");
-        }
+        Role customerRole = roleRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new RuntimeException("Default role CUSTOMER not found"));
         User newUser = User.builder()
-                .username(user.getUsername())
-                .password(passwordEncoder.encode(user.getPassword()))
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .phone(user.getPhone())
-                .address(user.getAddress())
-                .role(user.getRole())
+                .username(registerRequest.getUsername())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .email(registerRequest.getEmail())
+                .fullName(registerRequest.getFullName())
+                .phone(registerRequest.getPhone())
+                .address(registerRequest.getAddress())
+                .role(customerRole)
                 .isActive(true)
                 .build();
+
         User saveUser = userRepository.save(newUser);
 
         String accessToken = tokenService.generateToken(saveUser);
@@ -116,7 +120,7 @@ public class UserService {
                 .build();
     }
 
-    public UserResponse createUser(User newUser) {
+    public UserResponse createUser(UserRequest newUser) {
 
         // check gia tri null truoc khi xu li
         if (newUser.getUsername() == null || newUser.getUsername().trim().isEmpty()) {
@@ -139,6 +143,9 @@ public class UserService {
             throw new RuntimeException("Email da ton tai");
         }
 
+        Role userRole = roleRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new RuntimeException("Default role CUSTOMER not found"));
+
         User user = User.builder()
                 .username(newUser.getUsername())
                 .password(passwordEncoder.encode(newUser.getPassword()))
@@ -146,10 +153,12 @@ public class UserService {
                 .fullName(newUser.getFullName())
                 .phone(newUser.getPhone())
                 .address(newUser.getAddress())
-                .role(newUser.getRole())
+                .role(userRole)
                 .isActive(true)
                 .build();
+
         User saveUser = userRepository.save(user);
+
         return UserResponse.fromEntity(saveUser);
     }
 
@@ -173,46 +182,46 @@ public class UserService {
         // return userResponse;
     }
 
-    public UserResponse updateUserById(Long id, User newUser) {
+    public UserResponse updateUserById(Long id, UserRequest userRequest) {
 
         // da check ngoai le o ham getUserById
         User user = userRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("User not found with id " + id));
 
         // Username khong duoc thay doi
-        if (newUser.getUsername() != null && !user.getUsername().equals(newUser.getUsername())) {
+        if (userRequest.getUsername() != null && !user.getUsername().equals(userRequest.getUsername())) {
             throw new RuntimeException("Username khong duoc thay doi");
         }
 
         // role khong duoc phep thay doi
-        if (newUser.getRole() != null) {
+        if (userRequest.getRole() != null) {
             throw new RuntimeException("Role khong duoc phep thay doi qua endpoint nay");
         }
 
         // cập nhật fullname
-        if (newUser.getFullName() != null) {
-            user.setFullName(newUser.getFullName());
+        if (userRequest.getFullName() != null) {
+            user.setFullName(userRequest.getFullName());
         }
         // cập nhật địa chỉ
-        if (newUser.getAddress() != null) {
-            user.setAddress(newUser.getAddress());
+        if (userRequest.getAddress() != null) {
+            user.setAddress(userRequest.getAddress());
         }
         // cập nhật email
-        if (newUser.getEmail() != null && !user.getEmail().equals(newUser.getEmail())
-                && userRepository.existsByEmail(newUser.getEmail())) {
+        if (userRequest.getEmail() != null && !user.getEmail().equals(userRequest.getEmail())
+                && userRepository.existsByEmail(userRequest.getEmail())) {
             throw new RuntimeException("Email da ton tai");
 
         }
-        if (newUser.getEmail() != null) {
-            user.setEmail(newUser.getEmail());
+        if (userRequest.getEmail() != null) {
+            user.setEmail(userRequest.getEmail());
         }
         // cập nhật password
-        if (newUser.getPassword() != null) {
-            user.setPassword(newUser.getPassword());
+        if (userRequest.getPassword() != null) {
+            user.setPassword(userRequest.getPassword());
         }
         // cập nhật số điện thoại
-        if (newUser.getPhone() != null) {
-            user.setPhone(newUser.getPhone());
+        if (userRequest.getPhone() != null) {
+            user.setPhone(userRequest.getPhone());
         }
 
         userRepository.save(user);
@@ -237,7 +246,7 @@ public class UserService {
 
     }
 
-    public UserResponse updateCurrentUserProfile(String username, User updateUser) {
+    public UserResponse updateCurrentUserProfile(String username, ProfileUpdateRequest updateUser) {
 
         // check username
         User currentUser = userRepository.findByUsername(username);
@@ -254,6 +263,7 @@ public class UserService {
         currentUser.setFullName(updateUser.getFullName());
         currentUser.setPhone(updateUser.getPhone());
         currentUser.setAddress(updateUser.getAddress());
+
         userRepository.save(currentUser);
 
         return UserResponse.fromEntity(currentUser);

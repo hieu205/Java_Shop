@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.dto.request.OrderRequest;
 import com.example.demo.dto.response.OrderResponse;
 import com.example.demo.entity.Order;
 import com.example.demo.service.OrderService;
@@ -67,8 +68,9 @@ public class OrderController {
     // tao don hang tu gio hang
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @PostMapping("user/{userId}/from-cart")
-    public ResponseEntity<OrderResponse> createOrderByCart(@PathVariable Long userId, @Valid @RequestBody Order order) {
-        return ResponseEntity.ok(orderService.createOrderByCart(userId, order));
+    public ResponseEntity<OrderResponse> createOrderByCart(@PathVariable Long userId,
+            @Valid @RequestBody OrderRequest request) {
+        return ResponseEntity.ok(orderService.createOrderByCart(userId, request));
     }
 
     // cap nhat trang thai gio hang

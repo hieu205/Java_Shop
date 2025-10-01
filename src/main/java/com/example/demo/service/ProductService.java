@@ -8,13 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.dto.request.ProductRequest;
 import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.entity.Category;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.ProductRepository;
 
+import lombok.Builder;
+
 import java.util.List;
 
+@Builder
 @Service
 public class ProductService {
 
@@ -70,31 +74,46 @@ public class ProductService {
         return productResponses;
     }
 
-    public ProductResponse createProduct(Product product) {
-        Category category = categoryRepository.findById(product.getCategory().getId())
-                .orElseThrow(() -> new RuntimeException("Category not founf with id " + product.getCategory().getId()));
-        if (category.getIsActive() == false) {
-            throw new RuntimeException("category chua Active");
+    public ProductResponse createProduct(ProductRequest productRequest) {
+
+        Category category = categoryRepository.findById(productRequest.getCategoryId())
+                .orElseThrow(
+                        () -> new RuntimeException("Category not found with id " + productRequest.getCategoryId()));
+
+        // Kiểm tra danh mục có đang hoạt động không
+        if (!category.getIsActive()) {
+            throw new RuntimeException("Danh mục chưa được kích hoạt");
         }
-        // name khong duoc de trong
-        if (product.getName() == null || product.getName().isBlank()) {
+
+        // Kiểm tra tên sản phẩm
+        if (productRequest.getName() == null || productRequest.getName().isBlank()) {
             throw new RuntimeException("Tên sản phẩm không được để trống");
         }
 
-        // gia > 0
-        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Giá sản phẩm phải > 0");
+        // Kiểm tra giá sản phẩm
+        if (productRequest.getPrice() == null || productRequest.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Giá sản phẩm phải lớn hơn 0");
         }
 
-        // so luong phai > 0
-        if (product.getQuantity() == null || product.getQuantity() < 0) {
+        // Kiểm tra số lượng sản phẩm
+        if (productRequest.getQuantity() == null || productRequest.getQuantity() < 0) {
             throw new RuntimeException("Số lượng sản phẩm phải >= 0");
         }
 
-        product.setCategory(category);
-
-        Product newProduct = productRepository.save(product);
-        return ProductResponse.fromEntity(newProduct);
+        // Tạo đối tượng sản phẩm
+        Product product = Product.builder()
+                .name(productRequest.getName())
+                .description(productRequest.getDescription())
+                .price(productRequest.getPrice())
+                .quantity(productRequest.getQuantity())
+                .lowStockThreshold(productRequest.getLowStockThreshold())
+                .imageUrl(productRequest.getImageUrl())
+                .category(category)
+                // .specifications(productRequest.getSpecifications())
+                .isActive(true)
+                .build();
+        Product savedProduct = productRepository.save(product);
+        return ProductResponse.fromEntity(savedProduct);
     }
 
     public ProductResponse updatedProduct(Long id, Product product) {

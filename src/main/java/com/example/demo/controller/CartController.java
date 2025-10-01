@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.request.CartItemRequest;
 import com.example.demo.dto.response.CartResponse;
 import com.example.demo.entity.Cart;
 import com.example.demo.entity.CartItem;
@@ -31,8 +32,8 @@ public class CartController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
     @PostMapping("/user/{userId}/items")
     public ResponseEntity<CartResponse> addItemToCart(@PathVariable Long userId,
-            @Valid @RequestBody CartItem cartItem) {
-        return ResponseEntity.ok(cartService.addItemToCart(userId, cartItem));
+            @Valid @RequestBody CartItemRequest cartItemRequest) {
+        return ResponseEntity.ok(cartService.addItemToCart(userId, cartItemRequest));
     }
 
     // cap nhat so luong san pham trong gio hang

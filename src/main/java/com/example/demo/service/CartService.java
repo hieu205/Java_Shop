@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.request.CartItemRequest;
 import com.example.demo.dto.response.CartResponse;
 import com.example.demo.entity.Cart;
 import com.example.demo.entity.CartItem;
@@ -48,18 +49,18 @@ public class CartService {
         return CartResponse.fromEntity(cart);
     }
 
-    public CartResponse addItemToCart(Long userId, CartItem cartItem) {
+    public CartResponse addItemToCart(Long userId, CartItemRequest cartItemRequest) {
         Cart cart = getOrCreateCart(userId);
 
-        Product product = productRepository.findById(cartItem.getProduct().getId())
-                .orElseThrow(() -> new RuntimeException("product not found with id " + cartItem.getProduct().getId()));
+        Product product = productRepository.findById(cartItemRequest.getProductId())
+                .orElseThrow(() -> new RuntimeException("product not found with id " + cartItemRequest.getProductId()));
 
         if (product.getIsActive() == false) {
             throw new RuntimeException("product is not active");
         }
 
         // check so luong hang san co va hang trong don
-        if (product.getQuantity() < cartItem.getQuantity()) {
+        if (product.getQuantity() < cartItemRequest.getQuantity()) {
             throw new RuntimeException("khong du hang voi san pham: " + product.getName());
         }
 
@@ -68,7 +69,7 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem cart_Item = existingItem.get();
-            int newQuantity = cart_Item.getQuantity() + cartItem.getQuantity();
+            int newQuantity = cart_Item.getQuantity() + cartItemRequest.getQuantity();
 
             if (product.getQuantity() < newQuantity) {
                 throw new RuntimeException("het hang/khong du hang");
@@ -82,7 +83,7 @@ public class CartService {
             CartItem newItem = new CartItem();
             newItem.setCart(cart); // gán giỏ hàng hiện tại
             newItem.setProduct(product); // gán sản phẩm
-            newItem.setQuantity(cartItem.getQuantity()); // gán số lượng
+            newItem.setQuantity(cartItemRequest.getQuantity()); // gán số lượng
 
             // thêm vào list để duy trì quan hệ 2 chiều
             cart.getCartItems().add(newItem);

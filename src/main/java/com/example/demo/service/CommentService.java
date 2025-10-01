@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.request.CommentRequest;
 import com.example.demo.dto.response.CommentResponse;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.Product;
@@ -43,13 +44,13 @@ public class CommentService {
                 return CommentResponse.fromEntity(comment);
         }
 
-        public CommentResponse createComment(Long productId, Long userId, Comment newcComment) {
+        public CommentResponse createComment(Long productId, Long userId, CommentRequest newcCommentrRequest) {
                 Product product = productRepository.findById(productId)
                                 .orElseThrow(() -> new RuntimeException("product not found with id " + productId));
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found with id" + userId));
                 Comment comment = Comment.builder()
-                                .content(newcComment.getContent())
+                                .content(newcCommentrRequest.getContent())
                                 .product(product)
                                 .user(user)
                                 .parentComment(null)
@@ -61,7 +62,7 @@ public class CommentService {
                 return CommentResponse.fromEntity(savedComment);
         }
 
-        public CommentResponse replyComment(Long commentId, Long userId, Comment newComment) {
+        public CommentResponse replyComment(Long commentId, Long userId, CommentRequest newCommentrRequest) {
                 Comment parentComment = commentRepository.findById(commentId)
                                 .orElseThrow(() -> new RuntimeException("Comment not found with id " + commentId));
 
@@ -69,7 +70,7 @@ public class CommentService {
                                 .orElseThrow(() -> new RuntimeException("user not found with id " + userId));
 
                 Comment reply = Comment.builder()
-                                .content(newComment.getContent())
+                                .content(newCommentrRequest.getContent())
                                 .product(parentComment.getProduct())
                                 .user(user)
                                 .parentComment(parentComment)
@@ -82,7 +83,7 @@ public class CommentService {
                 return CommentResponse.fromEntity(savedComment);
         }
 
-        public CommentResponse updateComment(Long id, Comment comment) {
+        public CommentResponse updateComment(Long id, CommentRequest comment) {
                 Comment currentComment = commentRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Comment not found with id " + id));
                 currentComment.setContent(comment.getContent());

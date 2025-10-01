@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.request.CategoryRequest;
 import com.example.demo.dto.response.CategoryResponse;
 import com.example.demo.entity.Category;
 
@@ -22,6 +23,8 @@ import java.util.Objects;
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private CategoryRequest categoryRequest;
 
     public List<CategoryResponse> getAllActiveCategories() {
         List<Category> categories = categoryRepository.findByIsActiveTrue();
@@ -50,14 +53,14 @@ public class CategoryService {
         return categoryResponses;
     }
 
-    public CategoryResponse createCategory(Category category) {
+    public CategoryResponse createCategory(CategoryRequest categoryRequest) {
 
         // Kiểm tra parent category (nếu có)
         Category parentCategory = null;
-        if (category.getParentCategory() != null && category.getParentCategory().getId() != null) {
-            parentCategory = categoryRepository.findById(category.getParentCategory().getId())
+        if (categoryRequest.getParentCategoryId() != null) {
+            parentCategory = categoryRepository.findById(categoryRequest.getParentCategoryId())
                     .orElseThrow(() -> new RuntimeException("Parent category not found with id "
-                            + category.getParentCategory().getId()));
+                            + categoryRequest.getParentCategoryId()));
 
             if (!parentCategory.getIsActive()) {
                 throw new RuntimeException("Parent category is not active");
@@ -65,15 +68,15 @@ public class CategoryService {
         }
 
         // Kiểm tra trùng tên
-        if (categoryRepository.existsByName(category.getName())) {
-            throw new RuntimeException("Category name already exists: " + category.getName());
+        if (categoryRepository.existsByName(categoryRequest.getName())) {
+            throw new RuntimeException("Category name already exists: " + categoryRequest.getName());
         }
 
         // Tạo category mới
         Category newCategory = Category.builder()
-                .name(category.getName())
-                .description(category.getDescription())
-                .imageUrl(category.getImageUrl())
+                .name(categoryRequest.getName())
+                .description(categoryRequest.getDescription())
+                // .imageUrl(categoryRequest.getImageUrl())
                 .parentCategory(parentCategory)
                 .isActive(true)
                 .build();
@@ -83,15 +86,14 @@ public class CategoryService {
         return CategoryResponse.fromEntity(newCategory);
     }
 
-    public CategoryResponse updateCategoryById(Long id, Category updateCategory) {
+    public CategoryResponse updateCategoryById(Long id, CategoryRequest updateCategoryRequest) {
         // Lấy category từ DB
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
 
         // Kiểm tra parent category nếu thay đổi
         Long currentParentId = category.getParentCategory() != null ? category.getParentCategory().getId() : null;
-        Long requestParentId = updateCategory.getParentCategory() != null ? updateCategory.getParentCategory().getId()
-                : null;
+        Long requestParentId = updateCategoryRequest.getParentCategoryId();
 
         if (!Objects.equals(currentParentId, requestParentId)) {
             if (requestParentId != null) {
@@ -111,15 +113,15 @@ public class CategoryService {
         }
 
         // Kiểm tra tên mới đã tồn tại chưa (trừ chính nó)
-        if (!category.getName().equals(updateCategory.getName())
-                && categoryRepository.existsByName(updateCategory.getName())) {
-            throw new RuntimeException("Category name already exists: " + updateCategory.getName());
+        if (!category.getName().equals(updateCategoryRequest.getName())
+                && categoryRepository.existsByName(updateCategoryRequest.getName())) {
+            throw new RuntimeException("Category name already exists: " + updateCategoryRequest.getName());
         }
 
         // Cập nhật các trường khác
-        category.setName(updateCategory.getName());
-        category.setDescription(updateCategory.getDescription());
-        category.setImageUrl(updateCategory.getImageUrl());
+        category.setName(updateCategoryRequest.getName());
+        category.setDescription(updateCategoryRequest.getDescription());
+        // category.setImageUrl(updateCategoryRequest.getImageUrl());
         category.setIsActive(true); // luôn active
 
         categoryRepository.save(category);

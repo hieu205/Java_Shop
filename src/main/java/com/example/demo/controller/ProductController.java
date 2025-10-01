@@ -7,13 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.demo.dto.request.ProductRequest;
 import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.entity.Product;
 import com.example.demo.service.ProductService;
 
 import jakarta.validation.Valid;
+import lombok.Builder;
 
 @RestController
+@Builder
 @RequestMapping("/api/v1/products")
 public class ProductController {
 
@@ -47,8 +50,8 @@ public class ProductController {
     // tao san pham moi (chi co Admin or Staff)
     @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @PostMapping()
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody Product product) {
-        return ResponseEntity.ok(productService.createProduct(product));
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(productService.createProduct(request));
     }
 
     // cap nhat san pham (chi co Admin or Staff)

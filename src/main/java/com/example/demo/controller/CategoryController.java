@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.request.CategoryRequest;
 import com.example.demo.dto.response.CategoryResponse;
 import com.example.demo.entity.Category;
 
@@ -28,6 +29,9 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private CategoryRequest categoryRequest;
+
     // lay tat ca cac danh muc dang hoat dong
     @GetMapping()
     public ResponseEntity<List<CategoryResponse>> getAllActiveCategories() {
@@ -49,16 +53,16 @@ public class CategoryController {
     // tao danh muc moi ( chi co Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
-    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody Category category) {
-        return ResponseEntity.ok(categoryService.createCategory(category));
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest categoryRequest) {
+        return ResponseEntity.ok(categoryService.createCategory(categoryRequest));
     }
 
     // cap nhat dang muc (chi co Admin)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategoryById(@PathVariable Long id,
-            @Valid @RequestBody Category category) {
-        return ResponseEntity.ok(categoryService.updateCategoryById(id, category));
+            @Valid @RequestBody CategoryRequest categoryRequest) {
+        return ResponseEntity.ok(categoryService.updateCategoryById(id, categoryRequest));
     }
 
     // xoa danh muc by Id

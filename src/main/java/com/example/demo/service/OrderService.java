@@ -3,6 +3,7 @@ package com.example.demo.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.request.OrderRequest;
 import com.example.demo.dto.response.OrderResponse;
 import com.example.demo.entity.Cart;
 import com.example.demo.entity.CartItem;
@@ -86,7 +87,7 @@ public class OrderService {
         return orderResponses;
     }
 
-    public OrderResponse createOrderByCart(Long userId, Order newOrder) {
+    public OrderResponse createOrderByCart(Long userId, OrderRequest newOrder) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
         Cart cart = cartRepository.findByUserId(userId)
