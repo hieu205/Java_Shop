@@ -23,8 +23,6 @@ import java.util.Objects;
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
-    @Autowired
-    private CategoryRequest categoryRequest;
 
     public List<CategoryResponse> getAllActiveCategories() {
         List<Category> categories = categoryRepository.findByIsActiveTrue();

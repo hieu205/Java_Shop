@@ -21,7 +21,7 @@ import lombok.ToString;
 @ToString(exclude = { "password" })
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // dùng AUTO_INCREMENT
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
@@ -52,7 +52,7 @@ public class User {
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 

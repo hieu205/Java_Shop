@@ -29,9 +29,6 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private CategoryRequest categoryRequest;
-
     // lay tat ca cac danh muc dang hoat dong
     @GetMapping()
     public ResponseEntity<List<CategoryResponse>> getAllActiveCategories() {
